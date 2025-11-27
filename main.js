@@ -46,9 +46,18 @@ function initializeMap() {
     // Initialize Leaflet map
     map = L.map('map').setView([CONFIG.DEFAULT_LAT, CONFIG.DEFAULT_LNG], 6);
     
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    // Add dark basemap (CartoDB Dark Matter)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(map);
+    
+    // Add wind layer from OpenWeatherMap (animated wind overlay)
+    // Note: This is a visual representation using velocity data
+    const windLayer = L.tileLayer('https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=439d4b804bc8187953eb36d2a8c26a02', {
+        attribution: 'Wind data &copy; <a href="https://openweathermap.org/">OpenWeatherMap</a>',
+        opacity: 0.4,
         maxZoom: 19
     }).addTo(map);
 }
@@ -430,25 +439,34 @@ function clearFireMarkers() {
 
 function displayFiresOnMap(fires) {
     fires.forEach(fire => {
-        // Determine marker color based on confidence
-        let color = '#ff6b35'; // default orange
+        // Determine icon size based on confidence and brightness
+        let iconSize = 20; // Base size
         
+        // Increase size based on confidence
         if (fire.confidence === 'h' || fire.confidence === 'high') {
-            color = '#e74c3c'; // red for high confidence
-        } else if (fire.confidence === 'l' || fire.confidence === 'low') {
-            color = '#f39c12'; // yellow for low confidence
+            iconSize = 35; // High confidence = larger
+        } else if (fire.confidence === 'n' || fire.confidence === 'nominal') {
+            iconSize = 28; // Medium confidence
+        } else {
+            iconSize = 20; // Low confidence = smaller
         }
         
-        // Determine marker size based on recency (if we have time data)
-        const radius = 8; // Base radius
+        // Further adjust by brightness if available
+        if (fire.bright_ti4 && fire.bright_ti4 > 350) {
+            iconSize += 5; // Very bright fires are larger
+        }
         
-        const marker = L.circleMarker([fire.latitude, fire.longitude], {
-            radius: radius,
-            fillColor: color,
-            color: '#fff',
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
+        // Create custom fire icon
+        const fireIcon = L.divIcon({
+            className: 'fire-icon',
+            html: `<div style="font-size: ${iconSize}px; filter: drop-shadow(0 0 ${iconSize/2}px rgba(255, 69, 0, 0.8));">🔥</div>`,
+            iconSize: [iconSize, iconSize],
+            iconAnchor: [iconSize/2, iconSize/2],
+            popupAnchor: [0, -iconSize/2]
+        });
+        
+        const marker = L.marker([fire.latitude, fire.longitude], {
+            icon: fireIcon
         }).addTo(map);
         
         // Create popup content
