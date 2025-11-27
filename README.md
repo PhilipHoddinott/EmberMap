@@ -2,6 +2,8 @@
 
 **EmberMap** is a lightweight, static web application that visualizes active fire detections near your location using NASA FIRMS (Fire Information for Resource Management System) data.
 
+🌐 **Live Demo**: [https://philiphoddinott.github.io/EmberMap/](https://philiphoddinott.github.io/EmberMap/)
+
 ## Features
 
 - 📍 **Geolocation Support**: Automatically detects your location or allows manual input
