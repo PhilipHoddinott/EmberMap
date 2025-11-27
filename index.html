@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmberMap - Active Fire Detection</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🔥 EmberMap</h1>
+            <p class="subtitle">See active fires near you from NASA FIRMS data</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Control Panel -->
+            <aside class="control-panel">
+                <div class="panel-section">
+                    <h2>Location</h2>
+                    <button id="geolocate-btn" class="btn btn-primary">
+                        📍 Use My Current Location
+                    </button>
+                    <div class="location-status" id="location-status"></div>
+                    
+                    <div class="input-group">
+                        <label for="latitude">Latitude:</label>
+                        <input type="number" id="latitude" step="any" placeholder="e.g., 37.7749">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="longitude">Longitude:</label>
+                        <input type="number" id="longitude" step="any" placeholder="e.g., -122.4194">
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2>Search Radius</h2>
+                    <div class="input-group">
+                        <label for="radius">Radius (miles):</label>
+                        <input type="number" id="radius" min="1" max="500" value="100">
+                        <input type="range" id="radius-slider" min="1" max="500" value="100">
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <button id="find-fires-btn" class="btn btn-primary btn-large">
+                        🔍 Find Fires
+                    </button>
+                </div>
+
+                <div class="panel-section query-summary" id="query-summary">
+                    <h3>Current Query</h3>
+                    <div id="summary-text">
+                        <p>Configure location and click "Find Fires"</p>
+                    </div>
+                </div>
+
+                <div class="panel-section" id="error-display" style="display: none;">
+                    <div class="error-message" id="error-message"></div>
+                </div>
+            </aside>
+
+            <!-- Map Container -->
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="loading-overlay" id="loading-overlay" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Loading fire data...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <section class="results-section" id="results-section" style="display: none;">
+            <h2>Detected Fires</h2>
+            <div class="results-stats" id="results-stats"></div>
+            <div class="table-container">
+                <table id="fires-table">
+                    <thead>
+                        <tr>
+                            <th>Time (UTC)</th>
+                            <th>Distance (mi)</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Satellite</th>
+                            <th>Confidence</th>
+                            <th>Brightness (K)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fires-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Data source: <a href="https://firms.modaps.eosdis.nasa.gov/" target="_blank">NASA FIRMS</a> | 
+               Fire detections from MODIS and VIIRS satellites (last 48 hours)</p>
+        </footer>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <!-- Custom JS -->
+    <script src="main.js"></script>
+</body>
+</html>
