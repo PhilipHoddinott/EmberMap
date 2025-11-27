@@ -9,8 +9,8 @@ const CONFIG = {
     FIRMS_BASE_URL: 'https://firms.modaps.eosdis.nasa.gov/api/area/csv',
     TIME_WINDOW_DAYS: 2, // How many days back to query for fire data
     EARTH_RADIUS_MILES: 3958.8, // Earth's radius in miles for haversine calculation
-    DEFAULT_RADIUS_MILES: 100,
-    DEFAULT_LAT: 37.7749, // San Francisco (fallback)
+    DEFAULT_RADIUS_MILES: 200,
+    DEFAULT_LAT: 37.7749, // San Francisco
     DEFAULT_LNG: -122.4194
 };
 
@@ -34,8 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     syncRadiusInputs();
     
-    // Try to get user's location on load
-    tryGeolocation();
+    // Set San Francisco as default location
+    document.getElementById('latitude').value = CONFIG.DEFAULT_LAT.toFixed(6);
+    document.getElementById('longitude').value = CONFIG.DEFAULT_LNG.toFixed(6);
+    currentLocation = { lat: CONFIG.DEFAULT_LAT, lng: CONFIG.DEFAULT_LNG };
+    
+    // Set initial map view
+    const zoomLevel = calculateZoomForRadius(CONFIG.DEFAULT_RADIUS_MILES);
+    map.setView([CONFIG.DEFAULT_LAT, CONFIG.DEFAULT_LNG], zoomLevel);
+    updateUserMarker(CONFIG.DEFAULT_LAT, CONFIG.DEFAULT_LNG);
+    updateRadiusCircle(CONFIG.DEFAULT_LAT, CONFIG.DEFAULT_LNG, CONFIG.DEFAULT_RADIUS_MILES);
+    
+    showLocationStatus('Default location: San Francisco, CA', true);
 });
 
 // ============================================
@@ -515,12 +525,14 @@ function displayFiresOnMap(fires) {
         
         // Create popup content
         const popupContent = `
-            <strong>Fire Detection</strong><br>
+            <strong>🔥 Fire Detection</strong><br>
             <strong>Time:</strong> ${fire.acq_date} ${fire.acq_time}<br>
-            <strong>Coordinates:</strong> ${fire.latitude.toFixed(4)}, ${fire.longitude.toFixed(4)}<br>
+            <strong>Location:</strong><br>
+            &nbsp;&nbsp;Lat: ${fire.latitude.toFixed(6)}°<br>
+            &nbsp;&nbsp;Lon: ${fire.longitude.toFixed(6)}°<br>
             <strong>Distance:</strong> ${fire.distance.toFixed(1)} mi<br>
             <strong>Satellite:</strong> ${fire.satellite || 'N/A'}<br>
-            <strong>Confidence:</strong> ${fire.confidence}<br>
+            <strong>Confidence:</strong> ${fire.confidence.toUpperCase()}<br>
             <strong>Brightness:</strong> ${fire.bright_ti4 ? fire.bright_ti4.toFixed(1) + ' K' : 'N/A'}
         `;
         
