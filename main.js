@@ -61,6 +61,9 @@ function setupEventListeners() {
     // Geolocation button
     document.getElementById('geolocate-btn').addEventListener('click', tryGeolocation);
     
+    // City dropdown
+    document.getElementById('city-select').addEventListener('change', handleCitySelect);
+    
     // Find fires button
     document.getElementById('find-fires-btn').addEventListener('click', findFires);
     
@@ -141,6 +144,28 @@ function showLocationStatus(message, isSuccess) {
     const statusDiv = document.getElementById('location-status');
     statusDiv.textContent = message;
     statusDiv.className = `location-status ${isSuccess ? 'success' : 'error'}`;
+}
+
+function handleCitySelect(event) {
+    const value = event.target.value;
+    
+    if (!value) {
+        return;
+    }
+    
+    const [lat, lng] = value.split(',').map(parseFloat);
+    
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    
+    currentLocation = { lat, lng };
+    
+    const cityName = event.target.options[event.target.selectedIndex].text;
+    showLocationStatus(`✓ ${cityName} selected`, true);
+    
+    // Center map on selected city
+    map.setView([lat, lng], 8);
+    updateUserMarker(lat, lng);
 }
 
 // ============================================
