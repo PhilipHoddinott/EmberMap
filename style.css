@@ -544,3 +544,43 @@ td {
     50% { transform: scale(0.95) rotate(-1deg); }
     75% { transform: scale(1.02) rotate(1deg); }
 }
+
+/* Fire count control overlay */
+.fire-count-control {
+    background: linear-gradient(135deg, rgba(255, 69, 0, 0.95), rgba(255, 107, 53, 0.95));
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--accent-orange);
+    backdrop-filter: blur(10px);
+}
+
+.fire-count-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--white);
+}
+
+.fire-count-icon {
+    font-size: 24px;
+    animation: fireCountPulse 2s ease-in-out infinite;
+}
+
+@keyframes fireCountPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+.fire-count-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.fire-count-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

@@ -125,8 +125,9 @@ function tryGeolocation() {
             
             showLocationStatus('✓ Location acquired successfully', true);
             
-            // Center map on user location
-            map.setView([lat, lng], 8);
+            // Center map on user location with appropriate zoom
+            const zoomLevel = calculateZoomForRadius(currentRadius);
+            map.setView([lat, lng], zoomLevel);
             updateUserMarker(lat, lng);
         },
         (error) => {
@@ -172,8 +173,9 @@ function handleCitySelect(event) {
     const cityName = event.target.options[event.target.selectedIndex].text;
     showLocationStatus(`✓ ${cityName} selected`, true);
     
-    // Center map on selected city
-    map.setView([lat, lng], 8);
+    // Center map on selected city with appropriate zoom
+    const zoomLevel = calculateZoomForRadius(currentRadius);
+    map.setView([lat, lng], zoomLevel);
     updateUserMarker(lat, lng);
 }
 
@@ -209,8 +211,9 @@ async function findFires() {
     currentLocation = { lat, lng };
     currentRadius = radius;
     
-    // Update map
-    map.setView([lat, lng], 8);
+    // Update map with zoom based on radius
+    const zoomLevel = calculateZoomForRadius(radius);
+    map.setView([lat, lng], zoomLevel);
     updateUserMarker(lat, lng);
     updateRadiusCircle(lat, lng, radius);
     
@@ -396,6 +399,44 @@ function filterFiresByDistance(fires, centerLat, centerLng, radiusMiles) {
 // MAP VISUALIZATION
 // ============================================
 
+let fireCountControl = null;
+
+function updateFireCountOverlay(count) {
+    // Remove existing control if present
+    if (fireCountControl) {
+        map.removeControl(fireCountControl);
+    }
+    
+    // Create custom control for fire count
+    const FireCountControl = L.Control.extend({
+        onAdd: function(map) {
+            const div = L.DomUtil.create('div', 'fire-count-control');
+            div.innerHTML = `
+                <div class="fire-count-content">
+                    <span class="fire-count-icon">🔥</span>
+                    <span class="fire-count-number">${count}</span>
+                    <span class="fire-count-label">fire${count !== 1 ? 's' : ''} detected</span>
+                </div>
+            `;
+            return div;
+        }
+    });
+    
+    fireCountControl = new FireCountControl({ position: 'topright' });
+    fireCountControl.addTo(map);
+}
+
+function calculateZoomForRadius(radiusMiles) {
+    // Calculate appropriate zoom level based on search radius
+    // Larger radius = more zoomed out
+    if (radiusMiles <= 25) return 10;
+    if (radiusMiles <= 50) return 9;
+    if (radiusMiles <= 100) return 8;
+    if (radiusMiles <= 200) return 7;
+    if (radiusMiles <= 300) return 6;
+    return 5;
+}
+
 function updateUserMarker(lat, lng) {
     if (userMarker) {
         map.removeLayer(userMarker);
@@ -440,21 +481,24 @@ function clearFireMarkers() {
 function displayFiresOnMap(fires) {
     fires.forEach(fire => {
         // Determine icon size based on confidence and brightness
-        let iconSize = 20; // Base size
+        let iconSize = 24; // Base size - increased for better visibility
         
         // Increase size based on confidence
         if (fire.confidence === 'h' || fire.confidence === 'high') {
-            iconSize = 35; // High confidence = larger
+            iconSize = 38; // High confidence = larger
         } else if (fire.confidence === 'n' || fire.confidence === 'nominal') {
-            iconSize = 28; // Medium confidence
+            iconSize = 30; // Medium confidence
         } else {
-            iconSize = 20; // Low confidence = smaller
+            iconSize = 24; // Low confidence = smaller but still visible
         }
         
         // Further adjust by brightness if available
         if (fire.bright_ti4 && fire.bright_ti4 > 350) {
-            iconSize += 5; // Very bright fires are larger
+            iconSize += 6; // Very bright fires are larger
         }
+        
+        // Enforce minimum size for visibility
+        iconSize = Math.max(iconSize, 22);
         
         // Create custom fire icon
         const fireIcon = L.divIcon({
@@ -485,13 +529,20 @@ function displayFiresOnMap(fires) {
         fireMarkers.push(marker);
     });
     
-    // Fit map to show all fires and center
+    // Add or update fire count overlay
+    updateFireCountOverlay(fires.length);
+    
+    // Fit map to show all fires and center, or zoom based on radius
     if (fires.length > 0) {
         const bounds = L.latLngBounds(
             fires.map(f => [f.latitude, f.longitude])
         );
         bounds.extend([currentLocation.lat, currentLocation.lng]);
         map.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+        // No fires found, zoom to appropriate level for the search radius
+        const zoomLevel = calculateZoomForRadius(currentRadius);
+        map.setView([currentLocation.lat, currentLocation.lng], zoomLevel);
     }
 }
 
